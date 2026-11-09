@@ -100,10 +100,40 @@ func _on_portal_body_entered(body: Node2D) -> void:
 	
 	match_finished = true
 	var winner_id := body.name.to_int()
+	
+
 	announce_winner.rpc(winner_id)
+	
+	# 3. Aguarda os 5 segundos mostrando a mensagem de vitória
 	await get_tree().create_timer(5.0).timeout
+	
 	if multiplayer.is_server():
-		reset_round.rpc()
+		var cena_atual := get_tree().current_scene.name
+		var proxima_cena := "res://level_02.tscn" if cena_atual == "main" else "res://level.tscn"
+		change_level.rpc(proxima_cena)
+
+@rpc("authority", "call_local", "reliable")
+func change_level(scene_path: String) -> void:
+	get_tree().change_scene_to_file(scene_path)
+
+# func _on_portal_body_entered(body: Node2D) -> void:
+# 	var cena = get_tree().current_scene 
+# 	if cena.name == "main" and body.name == "1":
+# 		get_tree().change_scene_to_file("res://level_02.tscn")
+# 	else:
+# 		get_tree().change_scene_to_file("res://level.tscn")
+
+# 	if not multiplayer.is_server() or match_finished:
+# 		return
+# 	if not body.is_in_group("players"):
+# 		return
+
+# 	match_finished = true
+# 	var winner_id := body.name.to_int()
+# 	announce_winner.rpc(winner_id)
+# 	await get_tree().create_timer(5.0).timeout
+# 	if multiplayer.is_server():
+# 		reset_round.rpc()
 
 @rpc("authority", "call_local", "reliable")
 func announce_winner(winner_id: int) -> void:
